@@ -46,8 +46,21 @@ jobs:
       uses: sarisia/actions-status-discord@v1
       with:
         webhook: ${{ secrets.DISCORD_WEBHOOK }}
-        title: "✅ Build Success!"
-        description: "A new build of ${{ env.PLUGIN_NAME }} has been created\nCommit: ${{ github.sha }}"
+        title: "Success: ✅ Build Success!"
+        description: |
+          A new build of ${{ env.PLUGIN_NAME }} has been created
+
+          **Repository**
+          ${{ github.repository }}
+
+          **Event - ${{ github.event_name }}**
+          ${{ github.sha }} Update build.yml
+
+          **Triggered by**
+          ${{ github.actor }}
+
+          **Workflow**
+          Build
         color: 0x00ff00
         username: "🏺Artifact Build's"
         avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
@@ -57,8 +70,21 @@ jobs:
       uses: sarisia/actions-status-discord@v1
       with:
         webhook: ${{ secrets.DISCORD_WEBHOOK }}
-        title: "❌ Build Failed!"
-        description: "The build for ${{ env.PLUGIN_NAME }} has failed\nCommit: ${{ github.sha }}"
+        title: "Error: ❌ Build Failed!"
+        description: |
+          The build for ${{ env.PLUGIN_NAME }} has failed
+
+          **Repository**
+          ${{ github.repository }}
+
+          **Event - ${{ github.event_name }}**
+          ${{ github.sha }} Update build.yml
+
+          **Triggered by**
+          ${{ github.actor }}
+
+          **Workflow**
+          Build
         color: 0xff0000
         username: "🏺Artifact Build's"
         avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
@@ -87,8 +113,21 @@ jobs:
       uses: sarisia/actions-status-discord@v1
       with:
         webhook: ${{ secrets.DISCORD_WEBHOOK }}
-        title: "🎉 Release Published!"
-        description: "Version 1.0.0 of ${{ env.PLUGIN_NAME }} is now available!\nDownload: https://github.com/${{ github.repository }}/releases/latest"
+        title: "Success: 🎉 Release Published!"
+        description: |
+          Version 1.0.0 of ${{ env.PLUGIN_NAME }} is now available!
+
+          **Download**
+          https://github.com/${{ github.repository }}/releases/latest
+
+          **Repository**
+          ${{ github.repository }}
+
+          **Event - Release**
+          ${{ github.ref_name }}
+
+          **Published by**
+          ${{ github.actor }}
         color: 0x00ff00
         username: "🏺Artifact Build's"
         avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
@@ -98,8 +137,21 @@ jobs:
       uses: sarisia/actions-status-discord@v1
       with:
         webhook: ${{ secrets.DISCORD_WEBHOOK }}
-        title: "❌ Release Failed!"
-        description: "The release for ${{ env.PLUGIN_NAME }} has failed\nVersion: 1.0.0"
+        title: "Error: ❌ Release Failed!"
+        description: |
+          The release for ${{ env.PLUGIN_NAME }} has failed
+
+          **Version**
+          1.0.0
+
+          **Repository**
+          ${{ github.repository }}
+
+          **Event - Release**
+          ${{ github.ref_name }}
+
+          **Attempted by**
+          ${{ github.actor }}
         color: 0xff0000
         username: "🏺Artifact Build's"
         avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" 
