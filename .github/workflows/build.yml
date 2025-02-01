@@ -31,31 +31,28 @@ jobs:
     - name: Build with Maven
       run: mvn -B package --file pom.xml
 
-    - name: Upload to Release
-      uses: xresloader/upload-to-github-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Debug Directory
+      run: ls -la target/
+      
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
       with:
-        file: "target/${{ env.PLUGIN_FILE }}-*.jar"
-        tags: true
-        draft: false
-        prerelease: false
-        overwrite: true
-        update_latest_release: true
-        verbose: true
+        name: ${{ env.PLUGIN_FILE }}-1.0.0
+        path: target/${{ env.PLUGIN_FILE }}-1.0.0.jar
+        retention-days: 5
 
-    - name: Send Discord Notification
+    - name: Send Build Success Notification
       if: success()
       uses: sarisia/actions-status-discord@v1
       with:
         webhook: ${{ secrets.DISCORD_WEBHOOK }}
-        title: "New Build Available!"
-        description: "A new build of ${{ env.PLUGIN_NAME }} has been created\nCommit: ${{ github.sha }}\nVersion: ${{ github.ref_name }}"
+        title: "✅ Build Success!"
+        description: "A new build of ${{ env.PLUGIN_NAME }} has been created\nCommit: ${{ github.sha }}"
         color: 0x00ff00
         username: "🏺Artifact Build's"
         avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
 
-    - name: Send Build Failed Discord Notification
+    - name: Send Build Failed Notification
       if: failure()
       uses: sarisia/actions-status-discord@v1
       with:
@@ -74,36 +71,35 @@ jobs:
       contents: write
     
     steps:
-    - name: Download JAR
+    - name: Download Artifact
       uses: actions/download-artifact@v4
       with:
-        name: ${{ env.PLUGIN_FILE }}.jar
-        path: ./
+        name: ${{ env.PLUGIN_FILE }}-1.0.0
         
     - name: Upload Release
       uses: softprops/action-gh-release@v2
       with:
-        files: ${{ env.PLUGIN_FILE }}.jar
+        files: ${{ env.PLUGIN_FILE }}-1.0.0.jar
         fail_on_unmatched_files: true
 
-    - name: Send Release Discord Notification
+    - name: Send Release Success Notification
       if: success()
       uses: sarisia/actions-status-discord@v1
       with:
         webhook: ${{ secrets.DISCORD_WEBHOOK }}
-        title: "🎉 New Release Published!"
-        description: "A new release of ${{ env.PLUGIN_NAME }} is available\nDownload: https://github.com/${{ github.repository }}/releases/latest"
+        title: "🎉 Release Published!"
+        description: "Version 1.0.0 of ${{ env.PLUGIN_NAME }} is now available!\nDownload: https://github.com/${{ github.repository }}/releases/latest"
         color: 0x00ff00
         username: "🏺Artifact Build's"
         avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
 
-    - name: Send Build Failed Discord Notification
+    - name: Send Release Failed Notification
       if: failure()
       uses: sarisia/actions-status-discord@v1
       with:
         webhook: ${{ secrets.DISCORD_WEBHOOK }}
-        title: "❌ Build Failed!"
-        description: "The build for ${{ env.PLUGIN_NAME }} has failed\nCommit: ${{ github.sha }}"
+        title: "❌ Release Failed!"
+        description: "The release for ${{ env.PLUGIN_NAME }} has failed\nVersion: 1.0.0"
         color: 0xff0000
         username: "🏺Artifact Build's"
         avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" 
