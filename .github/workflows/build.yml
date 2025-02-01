@@ -30,20 +30,20 @@ jobs:
         
     - name: Build with Maven
       run: mvn -B package --file pom.xml
-      
-    - name: List target directory
-      run: ls -la target/
 
-    - name: Direct Upload JAR
+    - name: Prepare Artifact
+      run: |
+        mkdir -p artifacts
+        find target -name '*.jar' ! -name 'original-*.jar' -exec cp {} artifacts/plugin.jar \;
+        echo "JAR_PATH=$(find artifacts -name 'plugin.jar')" >> $GITHUB_ENV
+
+    - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        if-no-files-found: error
-        path: |
-          target/*.jar
-          !target/original-*.jar
-        name: Plugin.jar
+        name: plugin.jar
+        path: ${{ env.JAR_PATH }}
         retention-days: 5
-        compression: raw
+        compression: none
 
     - name: Send Discord Notification
       if: success()
@@ -67,16 +67,12 @@ jobs:
     - name: Download JAR
       uses: actions/download-artifact@v4
       with:
-        name: Plugin.jar
-        path: ./
-        
-    - name: List files
-      run: ls -la
+        name: plugin.jar
         
     - name: Upload Release
       uses: softprops/action-gh-release@v2
       with:
-        files: "*.jar"
+        files: plugin.jar
         fail_on_unmatched_files: true
 
     - name: Send Release Discord Notification
