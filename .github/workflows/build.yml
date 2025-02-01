@@ -34,16 +34,18 @@ jobs:
     - name: Prepare Artifact
       run: |
         mkdir -p artifacts
-        find target -name '*.jar' ! -name 'original-*.jar' -exec cp {} artifacts/plugin.jar \;
-        echo "JAR_PATH=$(find artifacts -name 'plugin.jar')" >> $GITHUB_ENV
+        cp target/${{ env.PLUGIN_FILE }}-*.jar artifacts/${{ env.PLUGIN_FILE }}.jar
+        echo "JAR_PATH=artifacts/${{ env.PLUGIN_FILE }}.jar" >> $GITHUB_ENV
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: plugin.jar
+        name: ${{ env.PLUGIN_FILE }}.jar
         path: ${{ env.JAR_PATH }}
         retention-days: 5
-        compression: none
+        compression-level: 0
+        if-no-files-found: error
+        overwrite: true
 
     - name: Send Discord Notification
       if: success()
@@ -67,12 +69,13 @@ jobs:
     - name: Download JAR
       uses: actions/download-artifact@v4
       with:
-        name: plugin.jar
+        name: ${{ env.PLUGIN_FILE }}.jar
+        path: ./
         
     - name: Upload Release
       uses: softprops/action-gh-release@v2
       with:
-        files: plugin.jar
+        files: ${{ env.PLUGIN_FILE }}.jar
         fail_on_unmatched_files: true
 
     - name: Send Release Discord Notification
