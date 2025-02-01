@@ -1,0 +1,13 @@
+# NoBullying Plugin Configuration
+# Created by Koopa (KoopaLabs)
+
+# Maximum number of mobs that can target a player at once
+max-targeting-mobs: 5
+
+# Worlds where the plugin is enabled
+enabled-worlds:
+  - world
+  - world_nether
+  - world_the_end
+
+# Support server: https://discord.gg/KmHGjaHWct 

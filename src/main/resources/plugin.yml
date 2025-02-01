@@ -1,0 +1,11 @@
+name: NoBullying
+version: 1.0.0
+main: com.koopalabs.nobullying.NoBullying
+api-version: '1.21'
+author: Koopa
+description: Limits the number of mobs that can target a player at once
+commands:
+  bully:
+    description: Reload the plugin configuration
+    usage: /bully reload
+    permission: nobullying.reload 
