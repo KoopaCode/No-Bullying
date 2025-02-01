@@ -1,4 +1,8 @@
 name: Build
+env:
+  PLUGIN_NAME: NoBullying
+  PLUGIN_FILE: nobullying
+
 on:
   push:
     branches: [ "main" ]
@@ -27,13 +31,20 @@ jobs:
     - name: Build with Maven
       run: mvn -B package --file pom.xml
       
+    - name: Debug directory contents
+      run: ls -la target/
+      
+    - name: Copy JAR to root
+      run: |
+        cp target/${{ env.PLUGIN_FILE }}-*.jar ./${{ env.PLUGIN_FILE }}.jar || exit 1
+      
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: NoBullying
-        path: target/nobullying-*.jar
-        compression-level: 0  # No compression
-        retention-days: 5     # Optional: reduce storage time
+        name: ${{ env.PLUGIN_FILE }}
+        path: ${{ env.PLUGIN_FILE }}.jar
+        compression-level: 0
+        retention-days: 5
 
     - name: Send Discord Notification
       if: success()
@@ -41,25 +52,11 @@ jobs:
       with:
         webhook: ${{ secrets.DISCORD_WEBHOOK }}
         title: "New Build Available!"
-        description: "A new build of NoBullying has been created"
+        description: "A new build of ${{ env.PLUGIN_NAME }} has been created\nCommit: ${{ github.sha }}"
         color: 0x00ff00
         username: "🏺Artifact Build's"
         avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
-        fields: |
-          [
-            {
-              "name": "Version",
-              "value": "${{ github.ref_name }}",
-              "inline": true
-            },
-            {
-              "name": "Commit",
-              "value": "${{ github.sha }}",
-              "inline": true
-            }
-          ]
 
-  # Create release with artifacts when a release is created
   release:
     needs: build
     if: github.event_name == 'release'
@@ -71,12 +68,12 @@ jobs:
     - name: Download build artifacts
       uses: actions/download-artifact@v4
       with:
-        name: NoBullying
+        name: ${{ env.PLUGIN_FILE }}
         
     - name: Upload release artifacts
       uses: softprops/action-gh-release@v2
       with:
-        files: nobullying-*.jar
+        files: ${{ env.PLUGIN_FILE }}.jar
 
     - name: Send Release Discord Notification
       if: success()
@@ -84,20 +81,7 @@ jobs:
       with:
         webhook: ${{ secrets.DISCORD_WEBHOOK }}
         title: "🎉 New Release Published!"
-        description: "Version ${{ github.ref_name }} of NoBullying has been released"
+        description: "A new release of ${{ env.PLUGIN_NAME }} is available\nDownload: https://github.com/${{ github.repository }}/releases/latest"
         color: 0x00ff00
         username: "🏺Artifact Build's"
-        avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
-        fields: |
-          [
-            {
-              "name": "Version",
-              "value": "${{ github.ref_name }}",
-              "inline": true
-            },
-            {
-              "name": "Download",
-              "value": "[Click Here](https://github.com/${{ github.repository }}/releases/latest)",
-              "inline": true
-            }
-          ] 
+        avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" 
