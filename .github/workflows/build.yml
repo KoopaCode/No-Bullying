@@ -31,22 +31,14 @@ jobs:
     - name: Build with Maven
       run: mvn -B package --file pom.xml
       
-    - name: Debug directory contents
-      run: ls -la target/
-      
-    - name: Copy JAR to root
-      run: |
-        mkdir artifacts
-        cp target/${{ env.PLUGIN_FILE }}-*.jar ./artifacts/${{ env.PLUGIN_FILE }}.jar || exit 1
-      
-    - name: Upload build artifacts
+    - name: Upload JAR
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ env.PLUGIN_FILE }}
-        path: artifacts/${{ env.PLUGIN_FILE }}.jar
+        name: ${{ env.PLUGIN_FILE }}.jar
+        path: target/${{ env.PLUGIN_FILE }}-*.jar
         compression-level: 0
-        retention-days: 5
         if-no-files-found: error
+        type: file
 
     - name: Send Discord Notification
       if: success()
@@ -54,7 +46,7 @@ jobs:
       with:
         webhook: ${{ secrets.DISCORD_WEBHOOK }}
         title: "New Build Available!"
-        description: "A new build of ${{ env.PLUGIN_NAME }} has been created\nCommit: ${{ github.sha }}"
+        description: "A new build of ${{ env.PLUGIN_NAME }} has been created\nCommit: ${{ github.sha }}\nVersion: ${{ github.ref_name }}"
         color: 0x00ff00
         username: "🏺Artifact Build's"
         avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
@@ -67,21 +59,15 @@ jobs:
       contents: write
     
     steps:
-    - name: Download build artifacts
+    - name: Download JAR
       uses: actions/download-artifact@v4
       with:
-        name: ${{ env.PLUGIN_FILE }}
-        path: ./
+        name: ${{ env.PLUGIN_FILE }}.jar
         
-    - name: Prepare Release Asset
-      run: |
-        ls -la
-        mv ${{ env.PLUGIN_FILE }}.jar NoBullying-${{ github.ref_name }}.jar
-        
-    - name: Upload release artifacts
+    - name: Upload Release
       uses: softprops/action-gh-release@v2
       with:
-        files: NoBullying-${{ github.ref_name }}.jar
+        files: ${{ env.PLUGIN_FILE }}-*.jar
         fail_on_unmatched_files: true
 
     - name: Send Release Discord Notification
@@ -92,5 +78,16 @@ jobs:
         title: "🎉 New Release Published!"
         description: "A new release of ${{ env.PLUGIN_NAME }} is available\nDownload: https://github.com/${{ github.repository }}/releases/latest"
         color: 0x00ff00
+        username: "🏺Artifact Build's"
+        avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+
+    - name: Send Build Failed Discord Notification
+      if: failure()
+      uses: sarisia/actions-status-discord@v1
+      with:
+        webhook: ${{ secrets.DISCORD_WEBHOOK }}
+        title: "❌ Build Failed!"
+        description: "The build for ${{ env.PLUGIN_NAME }} has failed\nCommit: ${{ github.sha }}"
+        color: 0xff0000
         username: "🏺Artifact Build's"
         avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" 
