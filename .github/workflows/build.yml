@@ -1,8 +1,4 @@
 name: Build
-env:
-  PLUGIN_NAME: NoBullying
-  PLUGIN_FILE: nobullying
-
 on:
   push:
     branches: [ "main" ]
@@ -27,6 +23,12 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
         cache: maven
+
+    - name: Get Project Info
+      run: |
+        echo "PLUGIN_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+        echo "PLUGIN_NAME=$(mvn help:evaluate -Dexpression=project.name -q -DforceStdout)" >> $GITHUB_ENV
+        echo "PLUGIN_FILE=$(mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout)" >> $GITHUB_ENV
         
     - name: Build with Maven
       run: mvn -B package --file pom.xml
@@ -37,55 +39,21 @@ jobs:
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ env.PLUGIN_FILE }}-1.0.0
-        path: target/${{ env.PLUGIN_FILE }}-1.0.0.jar
+        name: ${{ env.PLUGIN_FILE }}-${{ env.PLUGIN_VERSION }}
+        path: target/${{ env.PLUGIN_FILE }}-${{ env.PLUGIN_VERSION }}.jar
         retention-days: 5
 
-    - name: Send Build Success Notification
-      if: success()
+    - name: Send Build Notification
+      if: always()
       uses: sarisia/actions-status-discord@v1
       with:
         webhook: ${{ secrets.DISCORD_WEBHOOK }}
-        title: "Success: ✅ Build Success!"
+        title: "${{ job.status == 'success' && '✅ Build Success!' || '❌ Build Failed!' }}"
         description: |
-          A new build of ${{ env.PLUGIN_NAME }} has been created
-
-          **Repository**
+          **${{ env.PLUGIN_NAME }} v${{ env.PLUGIN_VERSION }}**
+          By ${{ github.actor }} • ${{ github.sha }}
           ${{ github.repository }}
-
-          **Event - ${{ github.event_name }}**
-          ${{ github.sha }} Update build.yml
-
-          **Triggered by**
-          ${{ github.actor }}
-
-          **Workflow**
-          Build
-        color: 0x00ff00
-        username: "🏺Artifact Build's"
-        avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
-
-    - name: Send Build Failed Notification
-      if: failure()
-      uses: sarisia/actions-status-discord@v1
-      with:
-        webhook: ${{ secrets.DISCORD_WEBHOOK }}
-        title: "Error: ❌ Build Failed!"
-        description: |
-          The build for ${{ env.PLUGIN_NAME }} has failed
-
-          **Repository**
-          ${{ github.repository }}
-
-          **Event - ${{ github.event_name }}**
-          ${{ github.sha }} Update build.yml
-
-          **Triggered by**
-          ${{ github.actor }}
-
-          **Workflow**
-          Build
-        color: 0xff0000
+        color: ${{ job.status == 'success' && '0x00ff00' || '0xff0000' }}
         username: "🏺Artifact Build's"
         avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
 
@@ -100,58 +68,23 @@ jobs:
     - name: Download Artifact
       uses: actions/download-artifact@v4
       with:
-        name: ${{ env.PLUGIN_FILE }}-1.0.0
+        name: ${{ env.PLUGIN_FILE }}-${{ env.PLUGIN_VERSION }}
         
     - name: Upload Release
       uses: softprops/action-gh-release@v2
       with:
-        files: ${{ env.PLUGIN_FILE }}-1.0.0.jar
+        files: ${{ env.PLUGIN_FILE }}-${{ env.PLUGIN_VERSION }}.jar
         fail_on_unmatched_files: true
 
-    - name: Send Release Success Notification
-      if: success()
+    - name: Send Release Notification
+      if: always()
       uses: sarisia/actions-status-discord@v1
       with:
         webhook: ${{ secrets.DISCORD_WEBHOOK }}
-        title: "Success: 🎉 Release Published!"
+        title: "${{ job.status == 'success' && '🎉 Release Published!' || '❌ Release Failed!' }}"
         description: |
-          Version 1.0.0 of ${{ env.PLUGIN_NAME }} is now available!
-
-          **Download**
-          https://github.com/${{ github.repository }}/releases/latest
-
-          **Repository**
-          ${{ github.repository }}
-
-          **Event - Release**
-          ${{ github.ref_name }}
-
-          **Published by**
-          ${{ github.actor }}
-        color: 0x00ff00
-        username: "🏺Artifact Build's"
-        avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
-
-    - name: Send Release Failed Notification
-      if: failure()
-      uses: sarisia/actions-status-discord@v1
-      with:
-        webhook: ${{ secrets.DISCORD_WEBHOOK }}
-        title: "Error: ❌ Release Failed!"
-        description: |
-          The release for ${{ env.PLUGIN_NAME }} has failed
-
-          **Version**
-          1.0.0
-
-          **Repository**
-          ${{ github.repository }}
-
-          **Event - Release**
-          ${{ github.ref_name }}
-
-          **Attempted by**
-          ${{ github.actor }}
-        color: 0xff0000
+          **${{ env.PLUGIN_NAME }} v${{ env.PLUGIN_VERSION }}**
+          ${{ job.status == 'success' && '➜ https://github.com/${{ github.repository }}/releases/latest' || '' }}
+        color: ${{ job.status == 'success' && '0x00ff00' || '0xff0000' }}
         username: "🏺Artifact Build's"
         avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" 
