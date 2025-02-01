@@ -42,7 +42,6 @@ jobs:
         name: ${{ env.PLUGIN_FILE }}
         path: artifacts/${{ env.PLUGIN_FILE }}.jar
         retention-days: 5
-        compression-level: 0
         overwrite: true
 
     - name: Send Discord Notification
