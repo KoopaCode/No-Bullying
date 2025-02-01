@@ -30,15 +30,20 @@ jobs:
         
     - name: Build with Maven
       run: mvn -B package --file pom.xml
+
+    - name: Create Artifacts Directory
+      run: |
+        mkdir -p artifacts
+        cp target/${{ env.PLUGIN_FILE }}-*.jar artifacts/${{ env.PLUGIN_FILE }}.jar
       
-    - name: Upload JAR
+    - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ env.PLUGIN_FILE }}.jar
-        path: target/${{ env.PLUGIN_FILE }}-*.jar
+        name: ${{ env.PLUGIN_FILE }}
+        path: artifacts/${{ env.PLUGIN_FILE }}.jar
+        retention-days: 5
         compression-level: 0
-        if-no-files-found: error
-        type: file
+        overwrite: true
 
     - name: Send Discord Notification
       if: success()
@@ -62,12 +67,13 @@ jobs:
     - name: Download JAR
       uses: actions/download-artifact@v4
       with:
-        name: ${{ env.PLUGIN_FILE }}.jar
+        name: ${{ env.PLUGIN_FILE }}
+        path: ./
         
     - name: Upload Release
       uses: softprops/action-gh-release@v2
       with:
-        files: ${{ env.PLUGIN_FILE }}-*.jar
+        files: ${{ env.PLUGIN_FILE }}.jar
         fail_on_unmatched_files: true
 
     - name: Send Release Discord Notification
