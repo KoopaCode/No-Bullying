@@ -31,21 +31,18 @@ jobs:
     - name: Build with Maven
       run: mvn -B package --file pom.xml
 
-    - name: Prepare Artifact
-      run: |
-        mkdir -p artifacts
-        cp target/${{ env.PLUGIN_FILE }}-*.jar artifacts/${{ env.PLUGIN_FILE }}.jar
-        echo "JAR_PATH=artifacts/${{ env.PLUGIN_FILE }}.jar" >> $GITHUB_ENV
-
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v4
+    - name: Upload to Release
+      uses: xresloader/upload-to-github-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        name: ${{ env.PLUGIN_FILE }}.jar
-        path: ${{ env.JAR_PATH }}
-        retention-days: 5
-        compression-level: 0
-        if-no-files-found: error
+        file: "target/${{ env.PLUGIN_FILE }}-*.jar"
+        tags: true
+        draft: false
+        prerelease: false
         overwrite: true
+        update_latest_release: true
+        verbose: true
 
     - name: Send Discord Notification
       if: success()
@@ -55,6 +52,17 @@ jobs:
         title: "New Build Available!"
         description: "A new build of ${{ env.PLUGIN_NAME }} has been created\nCommit: ${{ github.sha }}\nVersion: ${{ github.ref_name }}"
         color: 0x00ff00
+        username: "🏺Artifact Build's"
+        avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+
+    - name: Send Build Failed Discord Notification
+      if: failure()
+      uses: sarisia/actions-status-discord@v1
+      with:
+        webhook: ${{ secrets.DISCORD_WEBHOOK }}
+        title: "❌ Build Failed!"
+        description: "The build for ${{ env.PLUGIN_NAME }} has failed\nCommit: ${{ github.sha }}"
+        color: 0xff0000
         username: "🏺Artifact Build's"
         avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
 
