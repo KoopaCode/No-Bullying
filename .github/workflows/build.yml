@@ -32,6 +32,32 @@ jobs:
       with:
         name: NoBullying
         path: target/nobullying-*.jar
+        compression-level: 0  # No compression
+        retention-days: 5     # Optional: reduce storage time
+
+    - name: Send Discord Notification
+      if: success()
+      uses: sarisia/actions-status-discord@v1
+      with:
+        webhook: ${{ secrets.DISCORD_WEBHOOK }}
+        title: "New Build Available!"
+        description: "A new build of NoBullying has been created"
+        color: 0x00ff00
+        username: "🏺Artifact Build's"
+        avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+        fields: |
+          [
+            {
+              "name": "Version",
+              "value": "${{ github.ref_name }}",
+              "inline": true
+            },
+            {
+              "name": "Commit",
+              "value": "${{ github.sha }}",
+              "inline": true
+            }
+          ]
 
   # Create release with artifacts when a release is created
   release:
@@ -50,4 +76,28 @@ jobs:
     - name: Upload release artifacts
       uses: softprops/action-gh-release@v2
       with:
-        files: nobullying-*.jar 
+        files: nobullying-*.jar
+
+    - name: Send Release Discord Notification
+      if: success()
+      uses: sarisia/actions-status-discord@v1
+      with:
+        webhook: ${{ secrets.DISCORD_WEBHOOK }}
+        title: "🎉 New Release Published!"
+        description: "Version ${{ github.ref_name }} of NoBullying has been released"
+        color: 0x00ff00
+        username: "🏺Artifact Build's"
+        avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+        fields: |
+          [
+            {
+              "name": "Version",
+              "value": "${{ github.ref_name }}",
+              "inline": true
+            },
+            {
+              "name": "Download",
+              "value": "[Click Here](https://github.com/${{ github.repository }}/releases/latest)",
+              "inline": true
+            }
+          ] 
